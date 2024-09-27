@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use App\Models\Category;
 use App\Models\Author;
+use App\Models\User; // استيراد نموذج User
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Blog>
@@ -27,6 +28,7 @@ class BlogFactory extends Factory
             'status' => $this->faker->randomElement(['draft', 'published']),
             'category_id' => Category::inRandomOrder()->first()->id,
             'author_id' => Author::inRandomOrder()->first()->id,
+            'user_id' => User::inRandomOrder()->first()->id, // إضافة user_id
         ];
     }
 }

@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Blog extends Model
 {
     use HasFactory;
-
     protected $fillable = [
-        'title', 'content', 'excerpt', 'slug', 'status', 'category_id', 'author_id'
+        'title', 'content', 'excerpt', 'slug', 'status', 'category_id', 'author_id', 'user_id'
     ];
 
     public function category(): BelongsTo
@@ -30,6 +30,25 @@ class Blog extends Model
     {
         return $this->belongsTo(Author::class);
     }
+
+
+    /**
+     * Get the post that owns the comment.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
+    }
+
+    function img() {
+        return $this->image ? asset($this->image) : 'https://picsum.photos/1000/1000';
+    }
+
 }
 
 

@@ -7,7 +7,7 @@
         <x-flash-message></x-flash-message>
         <x-errors-display></x-errors-display>
         <div class="col-lg-8 mx-auto">
-            <form action="{{ route('blogs.store') }}" method="post" class="form">
+            <form action="{{ route('blogs.store') }}" method="post" class="form" enctype="multipart/form-data">
                 @csrf
 
                 <!-- Display validation errors -->
@@ -23,6 +23,16 @@
                     <textarea class="form-control" name="content" id="content" rows="7" required>{{ old('content') }}</textarea>
                 </div>
 
+                <div class="mb-4">
+                    <label  class="form-label">Tag</label>
+                    <select name="tags[]" multiple class="form-select" required>
+                        @foreach ($tags as $tag)
+                            <option value="{{$tag->id}}">
+                               {{ $tag->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="mb-4">
                     <label for="excerpt" class="form-label">Excerpt</label>
                     <input type="text" class="form-control" name="excerpt" id="excerpt" value="{{ old('excerpt') }}"
@@ -59,9 +69,24 @@
                     </select>
                 </div>
 
+
+                <div class="mb-4">
+                    <label for="user_id" class="form-label">User</label>
+                    <select name="user_id" class="form-select" required>
+                        @foreach ($users as $user)
+                            <option value="{{ $user->id }}">{{ $user->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <label for="image" class="form-label">Image</label>
+                    <input type="file" name="image">
                 <div class="mb-4 text-center">
                     <input type="submit" class="btn btn-primary" value="Add Blog">
                 </div>
+
+
+
             </form>
         </div>
     </div>

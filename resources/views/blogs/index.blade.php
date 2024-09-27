@@ -19,8 +19,12 @@
                 <th>Excerpt</th>
                 <th>Slug</th>
                 <th>Status</th>
-                <th>Category</th>
-                <th>Author</th>
+                <th>Category name</th>
+                <th>Author name</th>
+                <th>User name</th>
+                <th >Tags</th>
+                <th >Image</th>
+                <th>Show All</th>
                 <th>Edit</th>
                 <th>Delete</th>
             </tr>
@@ -36,8 +40,26 @@
                     {!! $blog->statusLabel() !!}
                     <td>{{ $blog->category->name }}</td>
                     <td>{{ $blog->author->name }}</td>
+                    <td>{{ $blog->user->name }}</td>
 
-                    <td><a href="{{ route('blogs.edit', $blog->slug) }}" class="btn btn-info">Edit</a></td>
+                <td >
+                    @foreach ($blog->tags as $tag )
+                        <span class='badge my-1 bg-warning ' >
+                        {{ $tag->name}}
+                  </span>
+                  <br>
+                  @endforeach
+
+
+                </td>
+
+                    <td>
+                        <img src="{{$blog->img()}}" style="width: 200px; height: 200px">
+                      
+                    </td>
+                    <td><a href="{{ route('blogs.showAll', $blog->id) }}" class="btn btn-info">show</a></td>
+
+                    <td><a href="{{ route('blogs.edit', $blog->id) }}" class="btn btn-info">Edit</a></td>
                     <td>
                         <form action="{{ route('blogs.destroy', $blog->id) }}" method="post">
                             @csrf
@@ -50,5 +72,4 @@
         </tbody>
     </table>
 
-    {{ $blogs->links() }}
 @endsection

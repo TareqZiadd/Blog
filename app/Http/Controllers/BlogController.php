@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Tag;
+use App\Models\User;
 use App\Models\Blog;
 use App\Models\Category;
 use App\Models\Author;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 
 class BlogController extends Controller
@@ -15,23 +16,25 @@ class BlogController extends Controller
     public function home()
     {
         $blogs = Blog::where('status', 'published')->orderBy('id', 'desc')->paginate(10);
-        return view('blogs.home', compact('blogs'));
+        return view('blogs.homeTest', compact('blogs'));
+    }
+
+    public function homeTest()
+    {
+        $blogs = Blog::where('status', 'published')->orderBy('id', 'desc')->paginate(10);
+        return view('blogs.homeTest', compact('blogs'));
     }
 
 
-    // public function show($id)
-    // {
-    //     $blog = Blog::findOrFail($id);
-    //     return view('blogs.show', compact('blog'));
-    // }
 
 
     public function create()
     {
+        $tags=Tag::select('id','name')->get();
         $categories = Category::all();
         $authors = Author::all();
-
-        return view('blogs.add', compact('categories', 'authors'));
+        $users=User::select('id','name')->get();
+        return view('blogs.add', compact('users','categories', 'authors','tags'));
     }
 
     public function show($slug)
@@ -39,39 +42,46 @@ class BlogController extends Controller
         $blog = Blog::where('slug', $slug)->firstOrFail();
         return view('blogs.show', compact('blog'));
     }
+    public function showAll($userId)
+    {
+        $blogs = Blog::where('user_id', $userId)->get();
+
+        return view('blogs.showAll', compact('blogs'));
+    }
 
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'title' => 'required|string|min:3|max:255',
             'content' => 'required|string|max:4000|min:20',
             'excerpt' => 'required|string|min:3|max:255',
             'status' => 'required|in:draft,published',
             'category_id' => 'required|exists:categories,id',
             'author_id' => 'required|exists:authors,id',
-            'slug' => ''
+            'user_id' => 'required|exists:users,id',
+            'slug' => '',
+            'image' => 'nullable|image|mimes:png,jpg,jpeg,gif'
         ]);
 
-        $blog = new Blog();
-        $blog->title = $request->title;
-        $blog->content = $request->content;
-        $blog->excerpt = $request->excerpt;
-        $blog->status = $request->status;
-        $blog->category_id = $request->category_id;
-        $blog->author_id = $request->author_id;
-        $blog->slug = Str::slug($request->title);
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('public');
+        }
 
-        $blog->save();
+        $data['slug'] = Str::slug($request->title);
+        $blog = Blog::create($data);
+
+        if ($request->has('tags')) {
+            $blog->tags()->sync($request->tags);
+        }
 
         return redirect()->route('blogs.index')->with('success', 'Blog created successfully!');
+
     }
-
-
 
     public function index()
     {
-        $blogs = Blog::orderBy('id', 'desc')->paginate();
+        $blogs = Blog::orderBy('id', 'desc')->get();
         return view('blogs.index', compact('blogs'));
     }
 
@@ -82,41 +92,54 @@ class BlogController extends Controller
         return back()->with('success', 'Blog deleted successfully.');
     }
 
-    public function edit($slug)
+    public function edit($id)
     {
-        $blog = Blog::where('slug',$slug)->firstOrFail();
+        $blog = Blog::findOrFail($id);
         $categories = Category::all();
         $authors = Author::all();
-        return view('blogs.edit', compact('blog', 'categories', 'authors'));
+        $users=User::select('id','name')->get();
+        $tags= Tag::select('id','name')->get();
+        return view('blogs.edit',
+         compact('blog', 'categories', 'authors','users','tags'));
     }
 
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string|max:4000',
-            'excerpt' => 'required|string|max:255',
-            'status' => 'required|in:draft,published',
-            'category_id' => 'required|exists:categories,id',
-            'author_id' => 'required|exists:authors,id',
-            'slug' => ''
-        ]);
+        public function update(Request $request, $id)
+        {
+            $data=$request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string|max:4000',
+                'excerpt' => 'required|string|max:255',
+                'status' => 'required|in:draft,published',
+                'category_id' => 'required|exists:categories,id',
+                'author_id' => 'required|exists:authors,id',
+                'image' => 'nullable|image|mimes:png,jpg,jpeg,gif',
+                'user_id' => 'required|exists:users,id',
+                'slug' => '',
+                'tags' => 'required|array', // التأكد من أن tags مصفوفة
+                'tags.*' => 'exists:tags,id' // التأكد من أن كل tag موجود في جدول tags
+            ]);
 
-        $blog = Blog::findOrFail($id);
+            $blog = Blog::findOrFail($id);
 
-        $blog->update([
-            'title' => $request->input('title'),
-            'content' => $request->input('content'),
-            'excerpt' => $request->input('excerpt'),
-            'status' => $request->input('status'),
-            'category_id' => $request->input('category_id'),
-            'author_id' => $request->input('author_id'),
-            'slug' => Str::slug($request->title)
-        ]);
+            $blog->update($data);
 
-        return redirect()->route('blogs.edit', ['id' => $blog->id])
-            ->with('success', 'Blog updated successfully!');
-    }
+            if ($request->hasFile('image')) {
+                if ($blog->image) {
+                    Storage::delete($blog->image);
+                }
+
+                $blog->image = $request->file('image')->store('public');
+                $blog->save();
+            }
+
+            if ($request->has('tags')) {
+                $blog->tags()->sync($request->tags);
+            }
+
+            return redirect()->route('blogs.index', ['id' => $blog->id])
+                ->with('success', 'Blog updated successfully!');
+        }
+
 
     public function search(Request $request)
     {

@@ -17,10 +17,11 @@ return new class extends Migration
             $table->text('content');
             $table->text('excerpt')->nullable();
             $table->string('slug')->unique();
+            $table->string('image')->nullable();
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
             $table->foreignId('author_id')->constrained('authors')->onDelete('cascade');
-            $table->timestamps();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');            $table->timestamps();
         });
     }
 

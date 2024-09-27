@@ -35,6 +35,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('authors.index') }}">Authors</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('users.index') }}">Users</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('tags.index') }}">Tags</a>
+                    </li>
                 </ul>
                 <form class="d-flex" method="GET" role="search" action="{{ route('blogs.search') }}">
                     <input class="form-control me-2" type="search" placeholder="Search on blogs" name="q">

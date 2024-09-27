@@ -7,7 +7,7 @@
         <x-flash-message></x-flash-message>
 
         <div class="col-8 mx-auto">
-            <form action="{{ route('blogs.update', ['id' => $blog->id]) }}" method="post" class="form">
+            <form action="{{ route('blogs.update', ['id' => $blog->id]) }}" method="post" class="form" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -16,8 +16,7 @@
 
                 <div class="mb-3">
                     <label for="title" class="form-label">Title</label>
-                    <input type="text" class="form-control" name="title" id="title" value="{{ $blog->title }}"
-                        required>
+                    <input type="text" class="form-control" name="title" id="title" value="{{ $blog->title }}" required>
                 </div>
 
                 <div class="mb-3">
@@ -26,10 +25,21 @@
                 </div>
 
 
+                <div class="mb-4">
+                    <label class="form-label">Tag</label>
+                    <select name="tags[]" multiple class="form-select" required>
+                        @foreach ($tags as $tag)
+                            <option   @if($blog->tags->contains($tag)) selected @endif value="{{ $tag->id }}">
+                               {{ $tag->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+
                 <div class="mb-3">
                     <label for="excerpt" class="form-label">Excerpt</label>
-                    <input type="text" class="form-control" name="excerpt" id="excerpt" value="{{ $blog->excerpt }}"
-                        required>
+                    <input type="text" class="form-control" name="excerpt" id="excerpt" value="{{ $blog->excerpt }}" required>
                 </div>
 
                 <div class="mb-3">
@@ -62,6 +72,18 @@
                     </select>
                 </div>
 
+                <div class="mb-4">
+                    <label for="user_id" class="form-label">User</label>
+                    <select name="user_id" class="form-select" required>
+                        @foreach ($users as $user)
+                            <option value="{{ $user->id }}" @selected($blog->user_id == $user->id)>{{ $user->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+
+                <label for="image" class="form-label">Image</label>
+                <input type="file" name="image">
                 <div class="mb-3">
                     <input type="submit" class="btn btn-primary" value="Save">
                 </div>
